@@ -11,6 +11,7 @@ class Task {
 
   bool get isCompleted => completionDate != null;
 
-  bool get isCompletedBeforeDeadline =>
-      isCompleted && completionDate!.isBefore(deadline);
+  void markAsCompleted() {
+    completionDate = DateTime.now();
+  }
 }

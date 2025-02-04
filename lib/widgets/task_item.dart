@@ -1,45 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:todo/helpers/format_datetime.dart';
 import '../models/task.dart';
+import '../helpers/format_datetime.dart';
 
 class TaskItem extends StatelessWidget {
   final Task task;
-  final void Function() onToggleComplete;
+  final VoidCallback onToggleComplete;
+  final VoidCallback onDelete;
 
   const TaskItem({
     super.key,
     required this.task,
     required this.onToggleComplete,
+    required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(
-        task.title,
-        style: TextStyle(
-          decoration: task.isCompleted
-              ? TextDecoration.lineThrough
-              : TextDecoration.none,
-        ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Дедлайн: ${formatDateTime(task.deadline)}'),
-          if (task.isCompleted)
-            Text(
-              'Завершено: ${formatDateTime(task.completionDate!)}',
-              style: TextStyle(
-                color:
-                    task.isCompletedBeforeDeadline ? Colors.green : Colors.red,
+    final theme = Theme.of(context);
+    final bodyLargeStyle = theme.textTheme.bodyLarge!;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(task.title, style: bodyLargeStyle),
+            if (task.isCompleted)
+              Text(
+                'Завершена: ${formatDate(task.completionDate!)}',
+                style: bodyLargeStyle.copyWith(
+                  color: task.completionDate!.isBefore(task.deadline)
+                      ? Colors.green
+                      : Colors.red,
+                ),
               ),
-            ),
-        ],
-      ),
-      trailing: Checkbox(
-        value: task.isCompleted,
-        onChanged: (_) => onToggleComplete(),
+          ],
+        ),
+        subtitle: Text('Дедлайн: ${formatDate(task.deadline)}'),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete, color: Colors.red),
+          onPressed: onDelete,
+        ),
+        onTap: onToggleComplete,
       ),
     );
   }

@@ -1,122 +1,105 @@
 import 'package:flutter/material.dart';
-import 'package:todo/helpers/format_datetime.dart';
+import '../models/task.dart';
+import '../helpers/format_datetime.dart';
 
 class NewTask extends StatefulWidget {
-  final void Function(String title, DateTime deadline) onTaskCreated;
+  final Function(Task) onAddTask;
 
-  const NewTask({super.key, required this.onTaskCreated});
+  const NewTask({super.key, required this.onAddTask});
 
   @override
   State<NewTask> createState() => _NewTaskState();
 }
 
 class _NewTaskState extends State<NewTask> {
-  final _titleController = TextEditingController();
-  DateTime selectedDate = DateTime.now();
-  TimeOfDay selectedTime = TimeOfDay.now();
+  final titleController = TextEditingController();
+  DateTime selectedDeadline = DateTime.now().add(Duration(days: 1));
 
-  final dateController = TextEditingController();
-  final timeController = TextEditingController();
+  void _saveTask() {
+    if (selectedDeadline.isBefore(DateTime.now())) {
+      return;
+    }
 
-  @override
-  void initState() {
-    super.initState();
-    dateController.text = formatDate(selectedDate);
-    timeController.text = formatTime(selectedTime);
+    final newTask = Task(
+      title: titleController.text,
+      deadline: selectedDeadline,
+    );
+
+    widget.onAddTask(newTask);
+    Navigator.of(context).pop();
   }
 
-  void _presentDatePicker() async {
-    final now = DateTime.now();
+  void _selectDate() async {
     final pickedDate = await showDatePicker(
       context: context,
-      firstDate: now,
-      lastDate: DateTime(now.year + 5),
-      initialDate: selectedDate,
+      initialDate: selectedDeadline,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(Duration(days: 365)),
     );
 
     if (pickedDate != null) {
       setState(() {
-        selectedDate = pickedDate;
-        dateController.text = formatDate(pickedDate);
+        selectedDeadline = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          selectedDeadline.hour,
+          selectedDeadline.minute,
+        );
       });
     }
   }
 
-  void _presentTimePicker() async {
+  void _selectTime() async {
     final pickedTime = await showTimePicker(
       context: context,
-      initialTime: selectedTime,
+      initialTime: TimeOfDay.fromDateTime(selectedDeadline),
     );
 
     if (pickedTime != null) {
       setState(() {
-        selectedTime = pickedTime;
-        timeController.text = formatTime(pickedTime);
+        selectedDeadline = DateTime(
+          selectedDeadline.year,
+          selectedDeadline.month,
+          selectedDeadline.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
       });
     }
   }
 
-  void _submitData() {
-    if (_titleController.text.isEmpty) return;
-
-    final deadline = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      selectedTime.hour,
-      selectedTime.minute,
-    );
-
-    widget.onTaskCreated(_titleController.text, deadline);
-    Navigator.of(context).pop();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Card(
-        elevation: 5,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Название задачи'),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          TextField(
+            controller: titleController,
+            decoration: const InputDecoration(labelText: 'Задача'),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: _selectDate,
+                  child: Text('Дата: ${formatDate(selectedDeadline)}'),
+                ),
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: TextField(
-                      controller: dateController,
-                      readOnly: true,
-                      onTap: _presentDatePicker,
-                      decoration:
-                          const InputDecoration(labelText: 'Дата дедлайна'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: timeController,
-                      readOnly: true,
-                      onTap: _presentTimePicker,
-                      decoration:
-                          const InputDecoration(labelText: 'Время дедлайна'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitData,
-                child: const Text('Добавить задачу'),
+              Expanded(
+                child: TextButton(
+                  onPressed: _selectTime,
+                  child: Text('Время: ${formatDate(selectedDeadline)}'),
+                ),
               ),
             ],
           ),
-        ),
+          ElevatedButton(
+            onPressed: _saveTask,
+            child: const Text('Сохранить задачу'),
+          ),
+        ],
       ),
     );
   }

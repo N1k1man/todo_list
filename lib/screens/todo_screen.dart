@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:todo/models/task.dart';
+import '../models/task.dart';
+import '../widgets/task_item.dart';
+import '../widgets/new_task.dart';
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -10,95 +12,64 @@ class TodoScreen extends StatefulWidget {
 
 class _TodoScreenState extends State<TodoScreen> {
   final List<Task> _tasks = [
-    Task(title: 'Купить молоко'),
-    Task(title: 'Сделать зарядку'),
-    Task(title: 'Позвонить другу'),
-    Task(title: 'Написать код'),
+    Task(
+        title: 'Купить молоко',
+        deadline: DateTime.now().add(Duration(days: 2))),
+    Task(
+        title: 'Позвонить маме',
+        deadline: DateTime.now().add(Duration(days: 1))),
+    Task(
+        title: 'Сделать домашку',
+        deadline: DateTime.now().add(Duration(days: 3))),
   ];
-  final TextEditingController _controller = TextEditingController();
 
-  void _addTask() {
-    if (_controller.text.isNotEmpty) {
-      setState(() {
-        _tasks.add(Task(title: _controller.text));
-        _controller.clear();
-      });
-    }
-  }
-
-  void _toggleTaskStatus(int index) {
+  void _toggleTaskCompletion(int index) {
     setState(() {
-      _tasks[index].isCompleted = !_tasks[index].isCompleted;
+      final task = _tasks[index];
+      if (task.isCompleted) {
+        task.completionDate = null;
+      } else {
+        task.markAsCompleted();
+      }
     });
   }
 
-  void _removeTask(int index) {
+  void _addNewTask(Task task) {
+    setState(() {
+      _tasks.add(task);
+    });
+  }
+
+  void _deleteTask(int index) {
     setState(() {
       _tasks.removeAt(index);
     });
   }
 
+  void _openAddTaskSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => NewTask(onAddTask: _addNewTask),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Список задач')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      labelText: 'Новая задача',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _addTask,
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _tasks.length,
-              itemBuilder: (context, index) {
-                final task = _tasks[index];
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  child: ListTile(
-                    title: Text(
-                      task.title,
-                      style: TextStyle(
-                        decoration: task.isCompleted
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
-                        color: task.isCompleted ? Colors.grey : Colors.black,
-                      ),
-                    ),
-                    leading: IconButton(
-                      icon: Icon(
-                        task.isCompleted
-                            ? Icons.check_box
-                            : Icons.check_box_outline_blank,
-                      ),
-                      onPressed: () => _toggleTaskStatus(index),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _removeTask(index),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+      appBar: AppBar(title: const Text('TODO List')),
+      body: ListView.builder(
+        itemCount: _tasks.length,
+        itemBuilder: (ctx, index) {
+          return TaskItem(
+            task: _tasks[index],
+            onToggleComplete: () => _toggleTaskCompletion(index),
+            onDelete: () => _deleteTask(index),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openAddTaskSheet,
+        child: const Icon(Icons.add),
       ),
     );
   }

@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:todo/todo_app.dart';
+import 'screens/todo_screen.dart';
 
 void main() {
-  runApp(const TodoApp());
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'TODO List',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const TodoScreen(),
+    );
+  }
 }
