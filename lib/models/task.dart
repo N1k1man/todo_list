@@ -1,6 +1,16 @@
 class Task {
-  String title;
-  bool isCompleted;
+  final String title;
+  final DateTime deadline;
+  DateTime? completionDate;
 
-  Task({required this.title, this.isCompleted = false});
+  Task({
+    required this.title,
+    required this.deadline,
+    this.completionDate,
+  });
+
+  bool get isCompleted => completionDate != null;
+
+  bool get isCompletedBeforeDeadline =>
+      isCompleted && completionDate!.isBefore(deadline);
 }
