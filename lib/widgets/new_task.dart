@@ -28,24 +28,33 @@ class _NewTaskState extends State<NewTask> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Добавить задачу'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: 'Название')),
-          DropdownButtonFormField(
-            value: selectedCategory,
-            items: categories
-                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                .toList(),
-            onChanged: (value) => setState(() => selectedCategory = value!),
-            decoration: const InputDecoration(labelText: 'Категория'),
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return SingleChildScrollView(
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(24, 24, 24, bottomInset + 24),
+        child: AlertDialog(
+          title: const Text('Добавить задачу'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Название')),
+              DropdownButtonFormField(
+                value: selectedCategory,
+                items: categories
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (value) => setState(() => selectedCategory = value!),
+                decoration: const InputDecoration(labelText: 'Категория'),
+              ),
+              ElevatedButton(
+                  onPressed: _saveTask, child: const Text('Добавить')),
+            ],
           ),
-          ElevatedButton(onPressed: _saveTask, child: const Text('Добавить')),
-        ],
+        ),
       ),
     );
   }
