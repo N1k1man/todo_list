@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
-import '../helpers/format_datetime.dart';
 
 class NewTask extends StatefulWidget {
   final Function(Task) onAddTask;
-
   const NewTask({super.key, required this.onAddTask});
 
   @override
@@ -14,91 +12,39 @@ class NewTask extends StatefulWidget {
 class _NewTaskState extends State<NewTask> {
   final titleController = TextEditingController();
   DateTime selectedDeadline = DateTime.now().add(Duration(days: 1));
+  String selectedCategory = 'Работа';
+  final List<String> categories = ['Работа', 'Покупки', 'Встречи', 'Обучение'];
 
   void _saveTask() {
-    if (selectedDeadline.isBefore(DateTime.now())) {
-      return;
-    }
-
+    if (titleController.text.isEmpty) return;
     final newTask = Task(
       title: titleController.text,
       deadline: selectedDeadline,
+      category: selectedCategory,
     );
-
     widget.onAddTask(newTask);
     Navigator.of(context).pop();
   }
 
-  void _selectDate() async {
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: selectedDeadline,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        selectedDeadline = DateTime(
-          pickedDate.year,
-          pickedDate.month,
-          pickedDate.day,
-          selectedDeadline.hour,
-          selectedDeadline.minute,
-        );
-      });
-    }
-  }
-
-  void _selectTime() async {
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(selectedDeadline),
-    );
-
-    if (pickedTime != null) {
-      setState(() {
-        selectedDeadline = DateTime(
-          selectedDeadline.year,
-          selectedDeadline.month,
-          selectedDeadline.day,
-          pickedTime.hour,
-          pickedTime.minute,
-        );
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
+    return AlertDialog(
+      title: const Text('Добавить задачу'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
-            controller: titleController,
-            decoration: const InputDecoration(labelText: 'Задача'),
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Название')),
+          DropdownButtonFormField(
+            value: selectedCategory,
+            items: categories
+                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                .toList(),
+            onChanged: (value) => setState(() => selectedCategory = value!),
+            decoration: const InputDecoration(labelText: 'Категория'),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: _selectDate,
-                  child: Text('Дата: ${formatDate(selectedDeadline)}'),
-                ),
-              ),
-              Expanded(
-                child: TextButton(
-                  onPressed: _selectTime,
-                  child: Text('Время: ${formatDate(selectedDeadline)}'),
-                ),
-              ),
-            ],
-          ),
-          ElevatedButton(
-            onPressed: _saveTask,
-            child: const Text('Сохранить задачу'),
-          ),
+          ElevatedButton(onPressed: _saveTask, child: const Text('Добавить')),
         ],
       ),
     );

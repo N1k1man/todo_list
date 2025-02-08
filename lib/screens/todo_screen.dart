@@ -14,61 +14,66 @@ class _TodoScreenState extends State<TodoScreen> {
   final List<Task> _tasks = [
     Task(
         title: 'Купить молоко',
-        deadline: DateTime.now().add(Duration(days: 2))),
+        deadline: DateTime.now().add(Duration(days: 2)),
+        category: 'Покупки'),
     Task(
-        title: 'Позвонить маме',
-        deadline: DateTime.now().add(Duration(days: 1))),
-    Task(
-        title: 'Сделать домашку',
-        deadline: DateTime.now().add(Duration(days: 3))),
+        title: 'Созвон с клиентом',
+        deadline: DateTime.now().add(Duration(days: 1)),
+        category: 'Работа'),
+  ];
+  String selectedCategory = 'Все задачи';
+  final List<String> categories = [
+    'Все задачи',
+    'Работа',
+    'Покупки',
+    'Встречи',
+    'Обучение'
   ];
 
-  void _toggleTaskCompletion(int index) {
-    setState(() {
-      final task = _tasks[index];
-      if (task.isCompleted) {
-        task.completionDate = null;
-      } else {
-        task.markAsCompleted();
-      }
-    });
-  }
-
-  void _addNewTask(Task task) {
-    setState(() {
-      _tasks.add(task);
-    });
-  }
-
-  void _deleteTask(int index) {
-    setState(() {
-      _tasks.removeAt(index);
-    });
-  }
-
-  void _openAddTaskSheet() {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => NewTask(onAddTask: _addNewTask),
-    );
+  void _addTask(Task task) {
+    setState(() => _tasks.add(task));
   }
 
   @override
   Widget build(BuildContext context) {
+    final filteredTasks = selectedCategory == 'Все задачи'
+        ? _tasks
+        : _tasks.where((task) => task.category == selectedCategory).toList();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('TODO List')),
+      appBar: AppBar(
+        title: const Text('TODO List'),
+        actions: [
+          DropdownButton(
+            value: selectedCategory,
+            items: categories
+                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                .toList(),
+            onChanged: (value) => setState(() => selectedCategory = value!),
+          ),
+        ],
+      ),
       body: ListView.builder(
-        itemCount: _tasks.length,
-        itemBuilder: (ctx, index) {
-          return TaskItem(
-            task: _tasks[index],
-            onToggleComplete: () => _toggleTaskCompletion(index),
-            onDelete: () => _deleteTask(index),
-          );
-        },
+        itemCount: filteredTasks.length,
+        itemBuilder: (ctx, i) => TaskItem(
+          task: filteredTasks[i],
+          onToggleComplete: () {
+            setState(() {
+              filteredTasks[i].markAsCompleted();
+            });
+          },
+          onDelete: () {
+            setState(() {
+              _tasks.remove(filteredTasks[i]);
+            });
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _openAddTaskSheet,
+        onPressed: () => showDialog(
+          context: context,
+          builder: (ctx) => NewTask(onAddTask: _addTask),
+        ),
         child: const Icon(Icons.add),
       ),
     );

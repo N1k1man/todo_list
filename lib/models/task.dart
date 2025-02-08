@@ -1,15 +1,19 @@
-import 'category.dart';
-
 class Task {
-  final String id;
   final String title;
-  final Category category;
-  bool isCompleted;
+  final DateTime deadline;
+  final String category;
+  DateTime? completionDate;
 
   Task({
-    required this.id,
     required this.title,
+    required this.deadline,
     required this.category,
-    this.isCompleted = false,
+    this.completionDate,
   });
+
+  bool get isCompleted => completionDate != null;
+
+  void markAsCompleted() {
+    completionDate = DateTime.now();
+  }
 }
